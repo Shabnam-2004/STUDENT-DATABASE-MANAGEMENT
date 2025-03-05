@@ -4,7 +4,7 @@ from tkinter import messagebox
 from PIL import Image, ImageTk
 import pymysql
 from tkcalendar import DateEntry
-from validate import validate_contact_input,validate_address_input,validate_full_name_input
+from validate import validate_contact_input,validate_address_input,validate_full_name_input,validate_dob_input
 
 
 def open_student_hub():
@@ -69,15 +69,36 @@ def open_student_hub():
 
     def add_func():
         if rollno.get() == "" or name.get() == "" or class_var.get() == "":
-            messagebox.showerror("Error!","Please fill all the fields!") 
+            messagebox.showerror("Error!", "Please fill all the fields!") 
         else:
-            conn = pymysql.connect(host="localhost",user="root",password="",database="sms1")    
+            conn = pymysql.connect(host="localhost", user="root", password="", database="sms1")    
             curr = conn.cursor()
-            curr.execute("INSERT INTO data VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s)",(rollno.get(),name.get(),class_var.get(),section.get(),contact.get(),fathersname.get(),address.get(),gender.get(),dob.get()))  
-            conn.commit()
-            conn.close() 
+            
+            # Check if the roll number already exists in the database
+            curr.execute("SELECT rollno FROM data WHERE rollno=%s", (rollno.get(),))
+            if curr.fetchone():
+                messagebox.showerror("Error", "This Student ID already exists. Please use a different ID.")
+            else:
+                try:
+                    curr.execute("INSERT INTO data VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s)", (
+                        rollno.get(),
+                        name.get(),
+                        class_var.get(),
+                        section.get(),
+                        contact.get(),
+                        fathersname.get(),
+                        address.get(),
+                        gender.get(),
+                        dob.get()
+                    ))
+                    conn.commit()
+                    fetch_data()  # Refresh the table with updated data
+                    messagebox.showinfo("Success", "Student added successfully.")
+                except Exception as e:
+                    messagebox.showerror("Database Error", f"An error occurred: {str(e)}")
+                finally:
+                    conn.close()
 
-            fetch_data()
 
     def get_cursor(event):
         cursor_row = student_table.focus()
@@ -228,6 +249,7 @@ def open_student_hub():
     validate_contacts = detail_frame.register(validate_contact_input)
     validate_name = detail_frame.register(validate_full_name_input)
     validate_address = detail_frame.register(validate_address_input)
+    validate_dob = detail_frame.register(validate_dob_input)
 
     #=======Entry=======#
 
@@ -284,7 +306,10 @@ def open_student_hub():
     dob_lbl.place(x=0,y=380)
 
     dob_ent = DateEntry(detail_frame, date_pattern="dd-mm-yyyy", width=18, font=("Inter", 15,"bold"),relief="solid",bd=1, textvariable=dob)
+    dob_ent.bind("<<DateEntrySelected>>", lambda event: validate_dob(event, dob))
     dob_ent.place(x=140,y=380)
+
+
 
     #===================#
 
@@ -436,7 +461,7 @@ frame_y = (login_window.winfo_screenheight() - frame_height) // 2  # Center vert
 frame = tk.Canvas(login_window, bg="white", highlightthickness=0)
 frame.place(x=frame_x, y=frame_y, width=frame_width, height=frame_height)
 
-login_label = ttk.Label(frame, text="SIGN UP", foreground="dark orange", background="white", font=("Trebuchet MS", 20,"bold"))
+login_label = ttk.Label(frame, text="SIGN UP", foreground="#15163A", background="white", font=("Trebuchet MS", 20,"bold"))
 login_label.place(relx=0.1, rely=0.05, anchor="nw") 
 
 username_label = ttk.Label(frame, text="Username", foreground="black", background="white", font=("Trebuchet MS", 12))
@@ -462,7 +487,7 @@ eye_closed_icon = ImageTk.PhotoImage(eye_closed_image)
 eye_icon_button = tk.Button(password_entry, image=eye_closed_icon, command=toggle_password_visibility, bd=0, bg="white", cursor="hand2")
 eye_icon_button.place(relx=1, rely=0.5, anchor="e")
 
-login_button = tk.Button(frame, text="LOGIN", command=login, width=44, height=2, background="dark orange",foreground="white",font=("Trebuchet MS", 10,"bold"),borderwidth=0,highlightthickness=0, cursor="hand2")
+login_button = tk.Button(frame, text="LOGIN", command=login, width=44, height=2, background="#15163A",foreground="white",font=("Trebuchet MS", 10,"bold"),borderwidth=0,highlightthickness=0, cursor="hand2")
 login_button.place(relx=0.1, rely=0.85, anchor="w") 
 
 login_window.mainloop()

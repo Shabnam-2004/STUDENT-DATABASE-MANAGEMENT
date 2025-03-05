@@ -1,4 +1,5 @@
 from tkinter import messagebox 
+import re
 
 def validate_full_name_input(P):
     if not P:
@@ -21,3 +22,13 @@ def validate_contact_input(P):
         return True
     messagebox.showerror("Invalid! Contact No", "Please Enter A 10 Digit Number.")
     return False
+
+def validate_dob_input(event, dob_var):
+    dob_value = dob_var.get()  # Get the selected date as string
+    
+    # Regular expression to match DD-MM-YYYY format
+    dob_pattern = r"^(0[1-9]|[12][0-9]|3[01])-(0[1-9]|1[0-2])-(\d{4})$"
+    
+    if not re.fullmatch(dob_pattern, dob_value):
+        messagebox.showerror("Invalid Date of Birth", "Please enter DOB in DD-MM-YYYY format (e.g., 25-12-2000).")
+        dob_var.set("")  # Clear invalid input
