@@ -8,7 +8,7 @@ from validate import validate_contact_input,validate_address_input,validate_full
 
 def create_database_and_table():
     try:
-        # Connect to MySQL server
+        # Connect to MySQL server First
         conn = pymysql.connect(host="localhost", user="root", password="")
         curr = conn.cursor()
         
